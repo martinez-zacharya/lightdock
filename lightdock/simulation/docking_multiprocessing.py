@@ -147,7 +147,9 @@ def prepare_gso_tasks(parser, adapters, scoring_functions, starting_points_files
             parser.args.anm_lig,
             parser.args.local_minimization,
         )
-        saving_path = "%s%d" % (DEFAULT_SWARM_FOLDER, id_swarm)
+        # saving_path = "%s%d" % (DEFAULT_SWARM_FOLDER, id_swarm)
+        swarm = DEFAULT_SWARM_FOLDER + str(id_swarm)
+        saving_path = os.path.join(parser.args.outdir, swarm)
         task = GSOClusterTask(id_swarm, gso, parser.args.steps, saving_path)
         tasks.append(task)
     return tasks
@@ -168,10 +170,10 @@ def run_simulation(parser):
         log.info("simulation parameters saved to %s" % info_file)
 
         # Read input structures (use parsed ones)
-        parsed_lightdock_receptor = os.path.join(
+        parsed_lightdock_receptor = os.path.join(args.outdir, os.path.join(
             os.path.dirname(args.receptor_pdb),
             DEFAULT_LIGHTDOCK_PREFIX % os.path.basename(args.receptor_pdb),
-        )
+        ))
         receptor = read_input_structure(
             parsed_lightdock_receptor,
             args.noxt,
@@ -179,10 +181,10 @@ def run_simulation(parser):
             args.now,
             args.verbose_parser,
         )
-        parsed_lightdock_ligand = os.path.join(
+        parsed_lightdock_ligand = os.path.join(args.outdir, os.path.join(
             os.path.dirname(args.ligand_pdb),
             DEFAULT_LIGHTDOCK_PREFIX % os.path.basename(args.ligand_pdb),
-        )
+        ))
         ligand = read_input_structure(
             parsed_lightdock_ligand, args.noxt, args.noh, args.now, args.verbose_parser
         )
@@ -193,22 +195,19 @@ def run_simulation(parser):
 
         if args.use_anm:
             try:
-                receptor.n_modes = read_nmodes(
-                    "%s%s" % (DEFAULT_REC_NM_FILE, NUMPY_FILE_SAVE_EXTENSION)
-                )
+                receptor.n_modes = read_nmodes(os.path.join(args.outdir, os.path.join(DEFAULT_REC_NM_FILE, NUMPY_FILE_SAVE_EXTENSION)))
+                    # "%s%s" % (DEFAULT_REC_NM_FILE, NUMPY_FILE_SAVE_EXTENSION)
             except:
                 log.warning("No ANM found for receptor molecule")
                 receptor.n_modes = None
             try:
-                ligand.n_modes = read_nmodes(
-                    "%s%s" % (DEFAULT_LIG_NM_FILE, NUMPY_FILE_SAVE_EXTENSION)
-                )
+                ligand.n_modes = read_nmodes(os.path.join(args.outdir, os.path.join(DEFAULT_LIG_NM_FILE, NUMPY_FILE_SAVE_EXTENSION)))
             except:
                 log.warning("No ANM found for ligand molecule")
                 ligand.n_modes = None
 
         starting_points_files = load_starting_positions(
-            args.swarms, args.glowworms, args.use_anm, args.anm_rec, args.anm_lig
+            args.swarms, args.glowworms, args.use_anm, args.anm_rec, args.anm_lig, args.outdir
         )
 
         scoring_functions, adapters = set_scoring_function(parser, receptor, ligand)

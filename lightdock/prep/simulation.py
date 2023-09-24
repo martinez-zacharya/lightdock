@@ -107,11 +107,11 @@ def write_mask_to_file(nm_mask, mask_file_name):
     np.save(mask_file_name, nm_mask)
 
 
-def save_lightdock_structure(structure):
+def save_lightdock_structure(structure, outdir):
     """Saves the structure parsed by LightDock"""
     log.info("Saving processed structure to PDB file...")
     for structure_index, file_name in enumerate(structure.structure_file_names):
-        moved_file_name = Path(file_name).parent / Path(
+        moved_file_name = Path(outdir) / Path(file_name).parent / Path(
             DEFAULT_LIGHTDOCK_PREFIX % Path(file_name).name
         )
         if moved_file_name.exists():
@@ -119,7 +119,7 @@ def save_lightdock_structure(structure):
                 f"{moved_file_name} already exists, please delete previous setup generated files"
             )
         write_pdb_to_file(structure, moved_file_name, structure[structure_index])
-        mask_file_name = Path(file_name).parent / Path(
+        mask_file_name = Path(outdir) / Path(file_name).parent / Path(
             DEFAULT_MASK_FILE % Path(file_name).stem
         )
         write_mask_to_file(structure.nm_mask, mask_file_name)
@@ -175,7 +175,8 @@ def calculate_starting_positions(
     flip=False,
     swarms_at_fixed_distance=DEFAULT_SWARM_DISTANCE,
     swarms_per_restraint=DEFAULT_SWARMS_PER_RESTRAINT,
-    dense_sampling=False
+    dense_sampling=False,
+    outdir = '.'
 ):
     """Defines the starting positions of each glowworm in the simulation.
 
@@ -185,7 +186,7 @@ def calculate_starting_positions(
     log.info(f"  * Surface density: TotalSASA/{surface_density:.2f}")
     log.info(f"  * Swarm radius: {swarm_radius:.2f} Å")
     log.info(f"  * 180° flip of 50% of starting poses: {flip}")
-    init_folder = DEFAULT_POSITIONS_FOLDER
+    init_folder = os.path.join(outdir, DEFAULT_POSITIONS_FOLDER)
     if not os.path.isdir(init_folder):
         os.mkdir(init_folder)
         starting_points_files = calculate_initial_poses(
@@ -237,11 +238,11 @@ def calculate_starting_positions(
 
 
 def load_starting_positions(
-    swarms, glowworms, use_anm, anm_rec=DEFAULT_NMODES_REC, anm_lig=DEFAULT_NMODES_LIG
+    swarms, glowworms, use_anm, anm_rec=DEFAULT_NMODES_REC, anm_lig=DEFAULT_NMODES_LIG, outdir='.'
 ):
     """Gets the list of starting positions of this simulation"""
     pattern = str(
-        Path(DEFAULT_POSITIONS_FOLDER) / f"{DEFAULT_STARTING_PREFIX}*.dat"
+        Path(outdir) / Path(outdir) / Path(DEFAULT_POSITIONS_FOLDER) / f"{DEFAULT_STARTING_PREFIX}*.dat"
     )
     starting_points_files = sorted(glob.glob(pattern))
     if len(starting_points_files) != swarms:
@@ -249,7 +250,7 @@ def load_starting_positions(
             "The number of initial positions files does not correspond with the number of swarms"
         )
     for swarm_id in range(len(starting_points_files)):
-        starting_point_file = Path(DEFAULT_POSITIONS_FOLDER) / f"{DEFAULT_STARTING_PREFIX}_{swarm_id}.dat"
+        starting_point_file = Path(outdir) / Path(DEFAULT_POSITIONS_FOLDER) / f"{DEFAULT_STARTING_PREFIX}_{swarm_id}.dat"
 
         if not check_starting_file(
             starting_point_file, glowworms, use_anm, anm_rec, anm_lig
@@ -260,11 +261,12 @@ def load_starting_positions(
     return starting_points_files
 
 
-def prepare_results_environment(swarms=10):
+def prepare_results_environment(swarms, outdir):
     """Prepares the folder structure required by the simulation"""
     log.info("Preparing environment")
     for id_swarm in range(swarms):
-        saving_path = "%s%d" % (DEFAULT_SWARM_FOLDER, id_swarm)
+        # saving_path = "%s%d" % (DEFAULT_SWARM_FOLDER, id_swarm)
+        saving_path = f'{outdir}/{DEFAULT_SWARM_FOLDER}{id_swarm}'
         if Path(saving_path).is_dir():
             raise LightDockError(f"Simulation folder {saving_path} already exists")
         os.mkdir(saving_path)
@@ -273,7 +275,7 @@ def prepare_results_environment(swarms=10):
 
 def create_setup_file(args):
     """Dumps the args object into a setup file in JSON format"""
-    with open(DEFAULT_SETUP_FILE, "w") as fp:
+    with open(f'{args.outdir}/{DEFAULT_SETUP_FILE}', "w") as fp:
         json.dump(vars(args), fp, sort_keys=True, indent=4)
 
 
@@ -287,7 +289,7 @@ def create_simulation_info_file(args, path=".", file_name=DEFAULT_LIGHTDOCK_INFO
     """Creates a simulation file from which recover from in a new simulation"""
     # Create the simulation info file. If it exists, includes a number
     # in the extension to avoid collision
-    output_file_name = Path(path) / file_name
+    output_file_name = Path(args.outdir) / Path(path) / file_name
     if output_file_name.is_file():
         original_file_name = output_file_name
         i = 1

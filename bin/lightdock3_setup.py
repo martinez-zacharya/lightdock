@@ -31,7 +31,7 @@ from lightdock.mathutil.ellipsoid import MinimumVolumeEllipsoid
 from lightdock.util.logger import LoggingManager
 from lightdock.error.lightdock_errors import LightDockError
 from lightdock.version import CURRENT_VERSION
-
+import lightdock.constants
 
 log = LoggingManager.get_logger("lightdock3_setup")
 
@@ -56,35 +56,45 @@ if __name__ == "__main__":
 
         # Calculate reference points for receptor
         log.info(f"Calculating reference points for receptor {args.receptor_pdb}...")
-        ellipsoid_data_file = "%s%s" % (
-            DEFAULT_LIGHTDOCK_PREFIX % receptor.structure_file_names[0],
-            DEFAULT_ELLIPSOID_DATA_EXTENSION,
+        ellipsoid_data_file = f'{args.outdir}/{receptor.structure_file_names[0]}{DEFAULT_ELLIPSOID_DATA_EXTENSION}'
+        # ellipsoid_data_file = "%s%s" % (
+        #     DEFAULT_LIGHTDOCK_PREFIX % receptor.structure_file_names[0],
+        #     DEFAULT_ELLIPSOID_DATA_EXTENSION,
+        # )
+        # if not Path(ellipsoid_data_file).exists():
+        #     log.info("Reference points for receptor found, skipping")
+        # else:
+        rec_ellipsoid = MinimumVolumeEllipsoid(
+            receptor.representative().coordinates
         )
-        if not Path(ellipsoid_data_file).exists():
-            log.info("Reference points for receptor found, skipping")
-        else:
-            rec_ellipsoid = MinimumVolumeEllipsoid(
-                receptor.representative().coordinates
-            )
-            np.save(ellipsoid_data_file, np.array([rec_ellipsoid.center.copy()]))
+        np.save(ellipsoid_data_file, np.array([rec_ellipsoid.center.copy()]))
         log.info("Done.")
 
         # Calculate reference points for ligand
         log.info("Calculating reference points for ligand %s..." % args.ligand_pdb)
-        ellipsoid_data_file = "%s%s" % (
-            DEFAULT_LIGHTDOCK_PREFIX % ligand.structure_file_names[0],
-            DEFAULT_ELLIPSOID_DATA_EXTENSION,
-        )
-        if not Path(ellipsoid_data_file).exists():
-            log.info("Reference points for ligand found, skipping")
-        else:
-            lig_ellipsoid = MinimumVolumeEllipsoid(ligand.representative().coordinates)
-            np.save(ellipsoid_data_file, np.array([lig_ellipsoid.center.copy()]))
+        ellipsoid_data_file = f'{args.outdir}/{ligand.structure_file_names[0]}{DEFAULT_ELLIPSOID_DATA_EXTENSION}'
+        lightdock.constants.DEFAULT_POSITIONS_FOLDER = f'{args.outdir}/{lightdock.constants.DEFAULT_POSITIONS_FOLDER}'
+        lightdock.constants.GSO_OUTPUT_FILE = f'{args.outdir}/{lightdock.constants.GSO_OUTPUT_FILE}'
+        lightdock.constants.DEFAULT_SETUP_FILE = f'{args.outdir}/{lightdock.constants.DEFAULT_SETUP_FILE}'
+        lightdock.constants.DEFAULT_PDB_STARTING_PREFIX = f'{args.outdir}/{lightdock.constants.DEFAULT_PDB_STARTING_PREFIX}'
+        lightdock.constants.DEFAULT_BILD_STARTING_PREFIX = f'{args.outdir}/{lightdock.constants.DEFAULT_BILD_STARTING_PREFIX}'
+        lightdock.constants.DEFAULT_STARTING_PREFIX = f'{args.outdir}/{lightdock.constants.DEFAULT_STARTING_PREFIX}'
+        lightdock.constants.DEFAULT_LIGHTDOCK_PREFIX = f'{args.outdir}/{lightdock.constants.DEFAULT_LIGHTDOCK_PREFIX}'
+
+        # ellipsoid_data_file = "%s%s" % (
+        #     DEFAULT_LIGHTDOCK_PREFIX % ligand.structure_file_names[0],
+        #     DEFAULT_ELLIPSOID_DATA_EXTENSION,
+        # # )
+        # if not Path(ellipsoid_data_file).exists():
+        #     log.info("Reference points for ligand found, skipping")
+        # else:
+        lig_ellipsoid = MinimumVolumeEllipsoid(ligand.representative().coordinates)
+        np.save(ellipsoid_data_file, np.array([lig_ellipsoid.center.copy()]))
         log.info("Done.")
 
         # Save to file parsed structures
-        save_lightdock_structure(receptor)
-        save_lightdock_structure(ligand)
+        save_lightdock_structure(receptor, args.outdir)
+        save_lightdock_structure(ligand, args.outdir)
 
         # Calculate and save ANM if required
         if args.use_anm:
@@ -162,13 +172,14 @@ if __name__ == "__main__":
             args.fixed_distance,
             args.swarms_per_restraint,
             args.dense_sampling,
+            args.outdir
         )
         if len(starting_points_files) != args.swarms:
             args.swarms = len(starting_points_files)
             log.info(f"Number of calculated swarms is {args.swarms}")
 
         # Create simulation folders
-        prepare_results_environment(args.swarms)
+        prepare_results_environment(args.swarms, args.outdir)
 
         # Add manually setup version
         args.setup_version = CURRENT_VERSION

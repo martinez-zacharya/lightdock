@@ -342,6 +342,12 @@ class SetupCommandLineParser(object):
             action="version",
             version="%s %s" % (parser.prog, CURRENT_VERSION),
         )
+        parser.add_argument(
+            "--outdir",
+            help="TRILL outdir",
+            action="store",
+            default = '.'
+        )
         if input_args:
             self.args = parser.parse_args(input_args)
         else:
@@ -486,6 +492,12 @@ class CommandLineParser(object):
             nargs="+",
             type=int,
             required=False,
+        )
+        parser.add_argument(
+            "--outdir",
+            help="TRILL outdir",
+            action="store",
+            default = '.'
         )
         if input_args:
             self.args = parser.parse_args(input_args)

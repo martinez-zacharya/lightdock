@@ -52,6 +52,11 @@ def parse_command_line():
         dest="ignore_clusters",
         action="store_true",
     )
+    parser.add_argument(
+        "--outdir",
+        help="Ignore cluster information",
+        action="store",
+    )
     return parser.parse_args()
 
 
@@ -65,7 +70,7 @@ if __name__ == "__main__":
         rmsds = {}
         if os.path.isfile(EVALUATION_FILE):
             contacts, rmsds = read_rmsd_and_contacts_data(EVALUATION_FILE)
-
+        DEFAULT_SWARM_FOLDER = os.path.join(args.outdir, DEFAULT_SWARM_FOLDER)
         num_swarms_found = 0
         for swarm_id in range(args.num_swarms):
             if args.result_file:
@@ -113,10 +118,10 @@ if __name__ == "__main__":
             except IOError:
                 log.warning("Results %s not found, ignoring." % result_file_name)
 
-        write_ranking_to_file(solutions, args.clashes_cutoff)
-        write_ranking_to_file(solutions, args.clashes_cutoff, order_by="luciferin")
-        write_ranking_to_file(solutions, args.clashes_cutoff, order_by="rmsd")
-        write_ranking_to_file(solutions, args.clashes_cutoff, order_by="scoring")
+        write_ranking_to_file(solutions, args, args.clashes_cutoff)
+        write_ranking_to_file(solutions, args, args.clashes_cutoff, order_by="luciferin")
+        write_ranking_to_file(solutions, args, args.clashes_cutoff, order_by="rmsd")
+        write_ranking_to_file(solutions, args, args.clashes_cutoff, order_by="scoring")
 
         log.info("Number of swarms: %d" % args.num_swarms)
         log.info("Number of steps: %d" % args.steps)

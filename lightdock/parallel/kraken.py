@@ -13,7 +13,7 @@ class Tentacle(Process):
         self.tasks = tasks
         self.profiling = profiling
         self.log = LoggingManager.get_logger("kraken")
-        self.log.info("Tentacle ready with %d tasks" % len(self.tasks))
+        # self.log.info("Tentacle ready with %d tasks" % len(self.tasks))
 
     def run(self):
         for task in self.tasks:
@@ -23,7 +23,7 @@ class Tentacle(Process):
                 cProfile.runctx(
                     "task.run()", globals(), locals(), "process_%s.out" % self.name
                 )
-        self.log.info("folding tentacle %s" % self.name)
+        # self.log.info("folding tentacle %s" % self.name)
 
 
 class Kraken(object):
@@ -65,7 +65,7 @@ class Kraken(object):
             tentacle = Tentacle(tentacle_tasks[i], profiling)
             self.tentacles.append(tentacle)
 
-        self.log.info("%d ships ready to be smashed" % self.num_tasks)
+        # self.log.info("%d ships ready to be smashed" % self.num_tasks)
 
     def release(self):
         """Unleash the wrath of this monster"""
@@ -76,7 +76,7 @@ class Kraken(object):
         for tentacle in self.tentacles:
             tentacle.join()
 
-        self.log.info("%d ships destroyed" % self.num_tasks)
+        # self.log.info("%d ships destroyed" % self.num_tasks)
 
         reports = [task.gso.report() for task in self.tasks]
 

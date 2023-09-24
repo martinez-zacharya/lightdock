@@ -169,19 +169,19 @@ def read_ranking_file(ranking_file):
         return results
 
 
-def write_ranking_to_file(solutions, clashes_cutoff=None, order_by=None):
+def write_ranking_to_file(solutions, args, clashes_cutoff=None, order_by=None):
     """Writes the calculated ranking to a file"""
     if order_by == "luciferin":
-        output_file = RANKING_BY_LUCIFERIN_FILE
+        output_file = os.path.join(args.outdir, RANKING_BY_LUCIFERIN_FILE)
         solutions.sort(key=operator.attrgetter("luciferin"), reverse=True)
     elif order_by == "scoring":
-        output_file = RANKING_BY_SCORING_FILE
+        output_file = os.path.join(args.outdir,RANKING_BY_SCORING_FILE)
         solutions.sort(key=operator.attrgetter("scoring"), reverse=True)
     elif order_by == "rmsd":
-        output_file = RANKING_BY_RMSD_FILE
+        output_file = os.path.join(args.outdir,RANKING_BY_RMSD_FILE)
         solutions.sort(key=operator.attrgetter("rmsd"), reverse=False)
     else:
-        output_file = RANKING_FILE
+        output_file = os.path.join(args.outdir,RANKING_FILE)
 
     output = open(output_file, "w")
     output.write(
