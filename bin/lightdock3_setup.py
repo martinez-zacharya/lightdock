@@ -56,7 +56,8 @@ if __name__ == "__main__":
 
         # Calculate reference points for receptor
         log.info(f"Calculating reference points for receptor {args.receptor_pdb}...")
-        ellipsoid_data_file = f'{args.outdir}/{receptor.structure_file_names[0]}{DEFAULT_ELLIPSOID_DATA_EXTENSION}'
+        # ellipsoid_data_file = f'{args.outdir}/{receptor.structure_file_names[0]}{DEFAULT_ELLIPSOID_DATA_EXTENSION}'
+        ellipsoid_data_file = f'{receptor.structure_file_names[0]}{DEFAULT_ELLIPSOID_DATA_EXTENSION}'
         # ellipsoid_data_file = "%s%s" % (
         #     DEFAULT_LIGHTDOCK_PREFIX % receptor.structure_file_names[0],
         #     DEFAULT_ELLIPSOID_DATA_EXTENSION,
@@ -72,7 +73,11 @@ if __name__ == "__main__":
 
         # Calculate reference points for ligand
         log.info("Calculating reference points for ligand %s..." % args.ligand_pdb)
-        ellipsoid_data_file = f'{args.outdir}/{ligand.structure_file_names[0]}{DEFAULT_ELLIPSOID_DATA_EXTENSION}'
+        if args.outdir == '.':
+            ellipsoid_data_file = f'{ligand.structure_file_names[0]}{DEFAULT_ELLIPSOID_DATA_EXTENSION}'
+        else:
+            ellipsoid_data_file = f'{ligand.structure_file_names[0]}{DEFAULT_ELLIPSOID_DATA_EXTENSION}'
+
         lightdock.constants.DEFAULT_POSITIONS_FOLDER = f'{args.outdir}/{lightdock.constants.DEFAULT_POSITIONS_FOLDER}'
         lightdock.constants.GSO_OUTPUT_FILE = f'{args.outdir}/{lightdock.constants.GSO_OUTPUT_FILE}'
         lightdock.constants.DEFAULT_SETUP_FILE = f'{args.outdir}/{lightdock.constants.DEFAULT_SETUP_FILE}'

@@ -111,7 +111,10 @@ def save_lightdock_structure(structure, outdir):
     """Saves the structure parsed by LightDock"""
     log.info("Saving processed structure to PDB file...")
     for structure_index, file_name in enumerate(structure.structure_file_names):
-        moved_file_name = Path(outdir) / Path(file_name).parent / Path(
+        # moved_file_name = Path(outdir) / Path(file_name).parent / Path(
+        #     DEFAULT_LIGHTDOCK_PREFIX % Path(file_name).name
+        # )
+        moved_file_name = Path(file_name).parent / Path(
             DEFAULT_LIGHTDOCK_PREFIX % Path(file_name).name
         )
         if moved_file_name.exists():
@@ -119,7 +122,10 @@ def save_lightdock_structure(structure, outdir):
                 f"{moved_file_name} already exists, please delete previous setup generated files"
             )
         write_pdb_to_file(structure, moved_file_name, structure[structure_index])
-        mask_file_name = Path(outdir) / Path(file_name).parent / Path(
+        # mask_file_name = Path(outdir) / Path(file_name).parent / Path(
+        #     DEFAULT_MASK_FILE % Path(file_name).stem
+        # )
+        mask_file_name = Path(file_name).parent / Path(
             DEFAULT_MASK_FILE % Path(file_name).stem
         )
         write_mask_to_file(structure.nm_mask, mask_file_name)
@@ -242,7 +248,7 @@ def load_starting_positions(
 ):
     """Gets the list of starting positions of this simulation"""
     pattern = str(
-        Path(outdir) / Path(outdir) / Path(DEFAULT_POSITIONS_FOLDER) / f"{DEFAULT_STARTING_PREFIX}*.dat"
+        Path(outdir) / Path(DEFAULT_POSITIONS_FOLDER) / f"{DEFAULT_STARTING_PREFIX}*.dat"
     )
     starting_points_files = sorted(glob.glob(pattern))
     if len(starting_points_files) != swarms:
